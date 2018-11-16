@@ -13,16 +13,16 @@ basic_linear_regression <- function(expr_mat, p_data, model_formula){
     stop('model_formula needs to be a string of the form y ~ + x1 + x2...')
   }
   expr_mat <- data.frame(expr_mat[row.names(p_data),], check.names = F)
-  forms <- paste()
   l <- lapply(expr_mat, function(x){
     tmp <- summary(lm(as.formula(model_formula), data=p_data))
   })
-  nms <- names(l)
-  x_list <- lapply(l, function(x){
-    x <- x$coefficients[2,]
-  })
-  out_df <- do.call(rbind, x_list)
-  row.names(out_df) <- nms
+  out_df <- lmlist_to_df(l)
+  # nms <- names(l)
+  # x_list <- lapply(l, function(x){
+  #   x <- x$coefficients[2,]
+  # })
+  # out_df <- do.call(rbind, x_list)
+  # row.names(out_df) <- nms
   return(out_df)
 }
 
@@ -36,7 +36,7 @@ basic_linear_regression <- function(expr_mat, p_data, model_formula){
 #' @export
 #'
 #' @examples
-basic_generalized_regression <- function(expr_mat, p_data, model_formula){
+basic_logistic_regression <- function(expr_mat, p_data, model_formula){
   ### Args:
   ### expr_mat: matrix of expression values
   ### p_data: matrix with sample data
@@ -58,60 +58,43 @@ basic_generalized_regression <- function(expr_mat, p_data, model_formula){
       x <- tmp[2,]
     }
   })
-
+  res_logreg <- data.frame(do.call(rbind, l), check.names = F)
+  colnames(res_logreg) <- c("Estimate","Std_Error","z_or_t_value", "p_value" )
+  row.names(res_logreg) <- names(l)
+  return(res_logreg)
 }
 
-#' Performs linear regression over all continuous variables
-#' in phenodata data.frame. I made this to test associations
-#' between continuous variables and the independent components
-#' from ICA.
-#'
-#' @param p_data phenodata data frame
-#' @param ic_mat matrix of independent components
-#'
-#' @return list of linear regression sums
-#' @export
-#'
-#' @examples
-pdata_continuous_lm_wrapper <- function(p_data, ic_mat){
-  big_lmlist <- list()
-  for(i in names(p_data)){
-    cur_var <- p_data[,i]
-    if(is.numeric(cur_var)){
-      lm_sum <- summary(lm(ic_mat ~ cur_var))
-      big_lmlist[[i]] <- lmlist_to_df(lm_sum)
-    }
 
+
+#' Compare the sample contributions according to their annotation level across the components.
+#'
+#' Wilcoxon or Kruskal-Wallis tests are performed depending on the number of levels in the considered annotation.
+#' @title Comparison of distributions of sample groups
+#' @param A A matrix of dimensions 'samples x components' containing the sample contributions
+#' @param annot A matrix of dimensions 'samples x variables' containing the sample annotations
+#' @param colAnnot The name of the column of \code{annot} to be considered
+#' @return A vector of p-values
+#' @author Anne Biton
+#' @seealso \code{wilcox.test}, \code{kruskal.test}
+#' @keywords external
+#' @import foreach
+#' @import doParallel
+wilcoxOrKruskalOnA <- function (A, colAnnot, annot) {
+
+  comp <- NULL
+  A <- A[rownames(annot),]
+
+  res_tests <- foreach(comp=as.list(A),.combine = c, .errorhandling = "stop") %dopar% {
+    annotComp <- data.frame(comp=comp)
+    annotComp[[colAnnot]] <- as.factor(annot[[colAnnot]])
+
+    if (length(levels(annotComp[[colAnnot]])) == 2)
+      res.test <- wilcox.test(comp~eval(as.name(colAnnot)), data = annotComp, na.action = "na.omit")
+    else
+      res.test <- kruskal.test(comp~eval(as.name(colAnnot)), data = annotComp, na.action = "na.omit")
+    return(res.test$p.value)
   }
-  return(big_lmlist)
+  return(unlist(res_tests))
+
 }
-
-#' Basically wrapper to apply Kruskal-Wallis test to
-#' the categorical sample variables. I made this to
-#' test associations between categorical variables
-#' and the independent components from ICA. Why
-#' Kruskal-Wallis? See MineICA
-#'
-#'
-#' @param p_data
-#' @param ic_mat
-#'
-#' @return
-#' @export
-#'
-#' @examples
-pdata_categorical_wrapper <- function(p_data, ic_mat){
-  big_catlist <- list()
-  for(i in names(p_data)){
-    cur_var <- p_data[,i]
-    if(! is.numeric(cur_var)){
-      #lm_sum <- summary(lm(ic_mat ~ cur_var))
-
-      big_catlist[[i]] <- lmlist_to_df(lm_sum)
-    }
-
-  }
-  return(big_lmlist)
-}
-
 
