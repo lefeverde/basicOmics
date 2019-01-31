@@ -1,0 +1,3 @@
+insertAssAddin <- function() {
+  rstudioapi::insertText("<- ")
+}

@@ -4,7 +4,7 @@
 \alias{enrich_go_wrapper}
 \title{Performs enrichment analysis accross all GO domains}
 \usage{
-enrich_go_wrapper(gene_vector)
+enrich_go_wrapper(ent_genes)
 }
 \arguments{
 \item{gene_vector}{}

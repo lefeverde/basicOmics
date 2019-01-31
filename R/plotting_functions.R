@@ -10,7 +10,7 @@
 #' @return
 #' @export
 #'
-#' @examples
+#' @example
 volcano_plotter <- function(plot_data, plot_labels=TRUE, label_num=10){
 
   require(ggplot2) #TODO consider fixing explicit `library` load

@@ -84,7 +84,7 @@ wilcoxOrKruskalOnA <- function (A, colAnnot, annot) {
   comp <- NULL
   A <- A[rownames(annot),]
 
-  res_tests <- foreach(comp=as.list(A),.combine = c, .errorhandling = "stop") %dopar% {
+  res_tests <- foreach::foreach(comp=as.list(A),.combine = c, .errorhandling = "stop") %dopar% {
     annotComp <- data.frame(comp=comp)
     annotComp[[colAnnot]] <- as.factor(annot[[colAnnot]])
 

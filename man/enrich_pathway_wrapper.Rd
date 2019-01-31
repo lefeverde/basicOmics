@@ -4,7 +4,7 @@
 \alias{enrich_pathway_wrapper}
 \title{Performs enrichment analysis using KEGG, REACTOME, DO, and DisGenNet}
 \usage{
-enrich_pathway_wrapper(gene_vector)
+enrich_pathway_wrapper(ent_genes)
 }
 \arguments{
 \item{gene_vector}{}

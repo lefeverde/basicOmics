@@ -1,3 +1,160 @@
+#' Split a named vector of DEGs by fold change
+#'
+#' @param lfc_list DEG vector of FCs
+#'
+#' @return
+#' @export
+#'
+#' @examples
+split_by_reg <- function(lfc_list){
+  split_degs <- list(
+    sort(lfc_list[lfc_list > 0, drop=F], decreasing = TRUE),
+    sort(lfc_list[lfc_list < 0, drop=F]))
+  names(split_degs) <- c('upreg', 'downreg')
+  #cat(paste0(names(split_degs[[1]]), ' '))
+  #cat('\n',paste0(names(split_degs[[1]]), ' '))
+  return(split_degs)
+}
+
+#' rbinds a named list of data.frames
+#'
+#' rbinds together data.frames in which the list name
+#' is turned into a column and bound to the data.frame
+#' becoming the first column of the data.frame
+#'
+#' @param df_list named list of data.frames
+#' @param sum_col_name colname of new column bound to data.frame
+#'
+#' @return a single data.frame row bound data.frame
+#' @export
+#'
+#' @examples
+rbind_named_df_list <- function(df_list, sum_col_name='col_from_list'){
+  nms <- names(df_list)
+  if(is.null(nms)){
+    stop('df_list needs to be a named list')
+  }
+  out_df <- list()
+  empty_dfs <- NULL
+  for(x in nms){
+    temp_pth <- data.frame(df_list[[x]])
+    if(nrow(temp_pth) > 0){
+      temp_pth <- cbind(x, temp_pth)
+      row.names(temp_pth) <- NULL
+      names(temp_pth)[1] <- sum_col_name
+      out_df[[x]] <- temp_pth
+    } else {
+      empty_dfs <- c(empty_dfs, x)
+      next
+    }
+    if(!is.null(empty_dfs)){
+      warning(paste('Some items contained empty or otherwise disagreeable data.frames and were not included in the bound data.frame.
+                    These include:\n'),
+              paste0(head(empty_dfs), sep='\n'))
+    }
+
+  }
+  out_df <- do.call(rbind, out_df)
+  row.names(out_df) <- NULL
+  return(out_df)
+
+  }
+
+
+#' Extract genes sets from a pathway results data.frame
+#'
+#' pathway results data.frame with a column
+#' of gene sets seperated by a delimiter
+#'
+#' @param path_df data.frame with gene sets
+#'
+#' @return list with names as pathway ids
+#' @export
+#'
+#' @examples
+get_geneSets <- function(path_df, delim="/"){
+  nms <- path_df$ID
+  gene_sets <-  strsplit(path_df$geneID, delim, fixed=TRUE)
+  names(gene_sets) <- nms
+  return(gene_sets)
+}
+
+
+#' Creates a much nicer formatted design matrix than the default model.matrix
+#'
+#' I made this function because the way the
+#' model.matrix creates issues with differential
+#' gene expression tools, such as edgeR, DESeq2,
+#' and limma. If the intercept column is included,
+#' it first removes the parens and parens from the
+#' intercept column and then removing the variable
+#' name from the colnames and replaces them with
+#' factor level vs reference level syntax. If the
+#' design is specified without an intercept, variable
+#' concatentation is simply removed.
+#'
+#' @param ... formula with outcome as first variable
+#' @param data data.frame
+#' @param show_warnings logical whether to show wanrings
+#'
+#' @return model.matrix
+#' @export
+#'
+#' @examples
+better_model_matrix <- function(..., data, show_warnings=TRUE){
+  m <- model.matrix(..., data=data)
+
+  # Getting variables (columns) from formula
+  mod_str <- deparse(...)
+
+  var_str <-
+    limma::strsplit2(mod_str, '\\+') %>%
+    drop(.) %>%
+    trimws(.) %>%
+    gsub('~', '', .) #%>%
+
+
+  # cleaning model matrix
+  if(var_str[1] == "0"){
+    # checks if intercept is 1st term
+    outcome_var <- var_str[2]
+  } else {
+    outcome_var <- var_str[1]
+  }
+  if(show_warnings){
+    w <- paste0('\n', outcome_var, ' used as outcome variable.\nIf this is incorrect, reorder the formula so that the outcome variable comes first.'   )
+    warning(w)
+  }
+  df_str <- deparse(substitute(data))
+  colnames(m) <-
+    gsub(outcome_var, '', colnames(m)) %>%
+    # gsub(df_str, '', .) %>%
+    gsub('\\(', '', .) %>%
+    gsub('\\)', '', .)
+
+  model_has_intercept <-
+    colnames(m) %>%
+    grepl('Intercept', ., ignore.case = TRUE) %>%
+    any(.)
+
+  if(model_has_intercept){
+    colnames_to_prettify <- levels(data[,outcome_var])
+    ref_level <- colnames_to_prettify[1]
+    colnames_to_prettify <- colnames_to_prettify[-1]
+    stopifnot(all(colnames_to_prettify %in% colnames(m)))
+    pretty_colnames <- sapply(colnames_to_prettify, function(x){
+      paste0(x, '_vs_', ref_level)
+    })
+    col_idxs <- match(colnames_to_prettify, colnames(m))
+    colnames(m)[col_idxs] <- pretty_colnames
+
+  }
+  return(m)
+}
+
+
+
+
 #' Split names by delim character
 #'
 #' @param df a data.frame
@@ -7,7 +164,7 @@
 #'
 #' @return vector of names
 #' @export
-#'R
+#'
 #' @examples
 split_fix_names <- function(df, delim=':', split_item=1, remove_space=TRUE){
   nms <- limma::strsplit2(names(df), delim)[,split_item]
@@ -55,14 +212,21 @@ lmlist_to_df <- function(lmlist, coef=2){
 #' set.seed(42)
 #' mat <- data.frame(group=c('a', 'a', 'a', 'b', 'c', 'c'), vals=runif(6))
 #' mat$vals[6] <- -4
-uniquefy_by_abs_max <- function(mat){
-  names(mat) <- c('group', 'vals')
-  mat <- mat[order(mat$group, -abs(mat$vals)),]
-  mat <- mat[!duplicated(mat$group),]
-  return(mat)
+uniquefy_by_abs_max <- function(mat, group_col=NULL, val_col=NULL){
+  if(is.null(group_col)){
+    group_col <- names(mat)[1]
+  }
+  if(is.null(val_col)){
+    val_col <- names(mat)[2]
+  }
+  mat <- data.frame(mat)
+  mat <- mat[order(mat[group_col], -abs(mat[val_col])),]
+  mat <- mat[!duplicated(mat[group_col]),]
 }
 
-#' Title
+
+
+#' Uniquefy by variance
 #'
 #' Idea for using max var to de-duplicate probes came
 #' form here: https://www.biostars.org/p/51756/#51875
@@ -78,7 +242,7 @@ uniquefy_by_abs_max <- function(mat){
 #'
 #' @examples
 uniquefy_by_variance <- function(expr_mat, probe_set){
-
+  # TODO Refactor to follow uniquefy_by_abs_max syntax
   names(probe_set) <- 'annots'
 
   # filtering so annots and expr have same
@@ -110,21 +274,62 @@ uniquefy_by_variance <- function(expr_mat, probe_set){
 
 }
 
-get_deseq2_results <- function(dds_object, gene_annots){
+#' Returns DESeq2 results in long format
+#'
+#' @param dds_object DDS object after running DESeq
+#' @param use_shrinkage logical whether to perform lfcshrinkage
+#' @param gene_annots Gene annotations which if not given are assumed
+#'
+#' @return results in long format
+#' @export
+#'
+#' @examples
+get_deseq2_results <- function(dds_object, gene_annots=NULL, use_shrinkage=FALSE){
+  if(is.null(gene_annots)){
+    gene_annots <-
+      SummarizedExperiment::mcols(dds_object) %>%
+      data.frame(.) %>%
+      dplyr::select_if(., is.character)
+
+    warning_msg <- paste0('gene annots not given.\nUsing: ',
+                          paste(names(gene_annots), collapse = ', '),
+                          ' for gene annotations')
+    warning(warning_msg)
+
+  }
+
+  # Get results by coefs which
+  # have `_vs_` in them
   results_list <- list()
-  res_names <- resultsNames(dds_object)
-  for(i in  res_names[2:length(res_names)]){
-    fixed_name <- limma::strsplit2(i, '_')[,2]
-    #results_list[[i]] <-results(dds_object, name = i)
-    temp_res <- data.frame(coefficient=i,results(dds_sub, name=i, tidy = T))
+  res_names <- DESeq2::resultsNames(dds_object)
+  res_names <- res_names[grepl('_vs_', res_names)]
+
+  for(i in  res_names){
+    # Checks whether to get results via shrinkage
+    if(use_shrinkage){
+      temp_res <- DESeq2::lfcShrink(dds_object,
+                                    coef = i,
+                                    type = 'normal',
+                                    parallel=TRUE)
+    } else if(!use_shrinkage){
+      temp_res <- DESeq2::results(dds_object, name = i)
+    }
+    temp_res <-
+      temp_res %>%
+        data.frame(.) %>%
+        tibble::rownames_to_column(., var = "ensembl_gene_id") %>%
+        data.frame(coefficient=i, .)
+
     results_list[[i]] <- temp_res
+    #temp_res <- data.frame(coefficient=i, results(dds_object, name=i, tidy = T))
+    #DESeq2::lfcShrink(dds_object, coef = i, type = 'normal', parallel=TRUE) %>%
     #temp_res <- lfcShrink(dds_object, )
   }
   names(results_list) <- NULL
   res_df <- do.call(rbind,results_list)
   rn <- res_df$row
   res_df$row <- NULL
-  sorted_annots <- gene_annots[match(rn, row.names(gene_annots)),]
+  sorted_annots <- gene_annots[match(rn, row.names(gene_annots)),,drop=FALSE]
   out_df <- data.frame(ENSEMBL_ID=rn, sorted_annots, res_df)
   row.names(out_df) <- NULL
   return(out_df)
@@ -138,33 +343,13 @@ uniquefy_results_by_lfc <- function(res_df){
   return(res_df)
 }
 
-
-# get_deseq2_results <- function(dds_object, gene_annots){
-#   results_list <- list()
-#   res_names <- DESeq2::resultsNames(dds_object)
-#   for(i in  res_names[2:length(res_names)]){
-#     fixed_name <- limma::strsplit2(i, '_')[,2]
-#     #results_list[[i]] <-results(dds_object, name = i)
-#     temp_res <- data.frame(coefficient=i,DESeq2::results(dds_object, name=i, tidy = T))
-#     results_list[[i]] <- temp_res
-#     #temp_res <- lfcShrink(dds_object, )
-#   }
-#   names(results_list) <- NULL
-#
-#   res_df <- do.call(rbind,results_list)
-#   rn <- res_df$row
-#   res_df$row <- NULL
-#   sorted_annots <- gene_annots[match(rn, row.names(gene_annots)),]
-#   out_df <- data.frame(ENSEMBL_ID=rn, sorted_annots, res_df)
-#   return(out_df)
-#
-# }
-
-
-#' Title
+#' get results from limma fit object
 #'
-#' Takes a limma fit object and returns a data
-#' frame with each each coefficient summarized
+#' Takes a limma fit object and returns a long data.frame
+#' of the results. If no coefficients are passed, it tries
+#' to guess which are the relevant ones checking which
+#' are made up of 1's and 0's.
+#'
 #' @param limma_fit
 #' @param skip_intercept
 #'
@@ -173,38 +358,42 @@ uniquefy_results_by_lfc <- function(res_df){
 #'
 #' @examples
 get_limma_results <- function(limma_fit, coefs=NULL){
-  all_coefs <- topTable(limma_fit, number = Inf)
-  gene_order <- row.names(all_coefs)
+
+  d <- limma_fit$design
   if(is.null(coefs)){
-    coefs <- colnames(limma_fit$design)
-    coefs <- coefs[2:length(coefs)]
+    d <- limma_fit$design
+    one_hot_cols <- sapply(seq(1,ncol(d)), function(i){
+      all(d[,i] %in% c(1,0))
+    })
+    coefs <- colnames(d)[one_hot_cols]
+    coefs <- coefs[!grepl('intercept', coefs, ignore.case = T)]
   }
+  res_list <- lapply(coefs, function(x){
+    cur_res <- limma::topTable(limma_fit, coef = x, number = Inf) %>%
+      tibble::as_tibble(.) %>%
+      # tibble::rownames_to_column(., 'ensembl_gene_id') %>%
+      # data.frame(coefficient=x, .)
+      data.frame(coefficient=x, .) %>%
+      tibble::rownames_to_column(., 'ensembl_gene_id')
 
-
-  fc_and_fdr <- list()
-  fc_and_fdr[['gene_id']] <- gene_order
-  for(i in coefs){
-    cur_top <- topTable(limma_fit,
-                        coef = i,
-                        confint = TRUE,
-                        number = Inf,
-                        adjust='fdr')
-    cur_top <- cur_top[gene_order,]
-    fc_and_fdr[[(paste0(i, '_pval'))]] <- cur_top$P.Value
-    fc_and_fdr[[(paste0(i, '_fdr_pval'))]] <- cur_top$adj.P.Val
-    fc_and_fdr[[(paste0(i, '_log2_fold_change'))]] <- cur_top$logFC
-  }
-  out_df <- as.data.frame(fc_and_fdr,
-                          check.names=F,
-                          row.names = fc_and_fdr[['gene_id']])
-  out_df$gene_id <- NULL
-  gene_annot_cols <- !sapply(all_coefs, is.numeric)
-  if(sum(gene_annot_cols) >= 1){
-    cur_annots <- all_coefs[,gene_annot_cols, drop=F]
-    cur_annots <- cur_annots[row.names(out_df),]
-    out_df <- cbind(cur_annots, out_df)
-  }
-  return(out_df)
+  }) %>% do.call(rbind, .)
+  return(res_list)
+}
+#' Selects the top n genes by variance
+#'
+#' @param expr_mat expression mat
+#' @param n_genes number of genes to extract
+#'
+#' @return
+#' @export
+#'
+#' @examples
+select_genes_by_variance <- function(expr_mat, n_genes=5000){
+  rv_idx <- matrixStats::rowVars(expr_mat) %>%
+    order(., decreasing = TRUE)
+  rv_idx <- rv_idx[1:n_genes]
+  filt_expr_mat <- expr_mat[rv_idx,]
+  return(filt_expr_mat)
 }
 
 
@@ -229,4 +418,35 @@ gene_quantile_filter <- function(expr_mat, quant_val=.05){
   filt_mat <- expr_mat[rm > qthresh,]
   filt_mat <- filt_mat[Biobase::rowMedians(filt_mat) > qthresh,]
   return(filt_mat)
+}
+
+#' Title
+#'
+#' @param n_genes
+#' @param m_samples
+#' @param seed
+#' @param groups
+#'
+#' @return
+#' @export
+#'
+#' @examples
+create_test_dds <- function(n_genes=500, m_samples=60, seed=42, groups=NULL){
+  set.seed(seed)
+  dds <- DESeq2::makeExampleDESeqDataSet(n=n_genes, m = m_samples)
+  mcols(dds) <- NULL
+  mcols(dds) <- data.frame(gene_id=names(dds),
+                           row.names=names(dds))
+  if(is.null(groups)){
+    groups <-
+      c(rep('A', m_samples/3),
+        rep('B', m_samples/3),
+        rep('C', m_samples/3)) %>%
+      factor(.)
+  }
+  colData(dds) <- DataFrame(condition=groups,
+                            row.names = colnames(dds))
+
+  return(dds)
+
 }

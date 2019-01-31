@@ -2,13 +2,17 @@
 % Please edit documentation in R/naive_regression_wrappers.R
 \name{basic_linear_regression}
 \alias{basic_linear_regression}
-\title{Performs basic linear regression with numerous Y vals}
+\title{Function performs lm over accross a number of genes}
 \usage{
 basic_linear_regression(expr_mat, p_data, model_formula)
 }
 \arguments{
-\item{model_formula}{}
+\item{expr_mat}{matrix of expression values}
+
+\item{p_data}{matrix with sample data}
+
+\item{model_formula}{a string of the form: y ~ x + o}
 }
 \description{
-Performs basic linear regression with numerous Y vals
+Function performs lm over accross a number of genes
 }
