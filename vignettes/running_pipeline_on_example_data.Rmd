@@ -1,0 +1,147 @@
+---
+title: "Example pipeline with basicOmics"
+author: "Daniel Lefever"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+            fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval=FALSE
+)
+```
+
+# Introduction 
+
+This document shows how the `basicOmics` can be used to run an RNA-seq analysis. Currently, this is done using the `limma-voom` method with batch and other nuisance variables accounted for using `sva`. The functions included in this package are wrappers and other functions which help with automating gene expression analysis. The packages commonly used for expression analysis rely on `base` `R` functions and settings for things like `model.matrix`es, `factor`s. Many of these `base` functions are product of ~20 years of technical debt which are often non-intuitive^[["The more you learn about the R language, the worse it will feel."](http://arrgh.tim-smith.us/)]. Even with `R` proficiency, I find myself having to spend a considerable amount of effort verifying that my scripts are doing what I think they should. 
+
+The goal of this project is create a set of functions which will help in expression analysis. These are all written to emphasize modularity, simplicity, and the inclusion of explicit errors. I've focused on creating functions which automate the tedious and/or error prone analysis steps. 
+
+# Creating test data subset
+These are steps used to create a subset of the data for testing purposes. At the moment, everything is hardcoded and taken from real data. It might be worthwhile to create synthetic datasets for automated testing. 
+```{r}
+library(tximport)
+library(tibble)
+library(dplyr)
+load("../../distefanoRNAseq/data-raw/pdata.RData")
+load("../../distefanoRNAseq/data-raw/tximport_limma_voom.RData")
+load("../../distefanoRNAseq/data-raw/tx2gene.RData")
+load("../../distefanoRNAseq/data-raw/gene_annots.RData")
+p_sub <- p[colnames(txi_sub$abundance),]
+ex_p <- p_sub[,c('file_name', 'sex','age', 'bmi_surg', 'diagnosis', 'group')]
+set.seed(42)
+ex_p <- ex_p %>% 
+  #ex_p[ex_p$group != 'Lob',] %>%
+  rownames_to_column(., var='sample_name') %>%
+  group_by(., group) %>%
+  sample_n(., 10) %>%
+  as.data.frame(.)
+row.names(ex_p) <- ex_p$sample_name
+files  <- paste0('/Users/daniellefever/Desktop/R/thesisAnalysis/data-raw/DiStefano_raw_data/kallisto/', ex_p$file_name, '.gz')
+names(files) <- row.names(ex_p)
+ex_lengthscaledtpm_txi <- tximport(files, type = 'kallisto', tx2gene = tx2gene, ignoreTxVersion = TRUE, countsFromAbundance = 'lengthScaledTPM')
+#save(ex_p, ex_lengthscaledtpm_txi, gene_annots, file='../data-raw/example_raw_data.RData')
+
+```
+
+
+# Running the pipeline 
+
+
+```{r}
+load('../data-raw/example_raw_data.RData')
+
+library(dplyr)
+library(sva)
+library(basicOmics)
+library(limma)
+
+temp_dge <- basicOmics::dge_wrapper(ex_lengthscaledtpm_txi, ex_p, gene_annots  )
+mod <- basicOmics::better_model_matrix(~group, data=ex_p)
+mod0 <- model.matrix(~1, data=ex_p)
+v_sv <- basicOmics::voom_sva_wrapper(temp_dge, mod, mod0) 
+fit <- lmFit(v_sv) %>% 
+  eBayes(.)
+res <- basicOmics::get_limma_results(fit)
+
+
+```
+
+# Checking results 
+```{r}
+basicOmics::expression_summaries(res)
+```
+```{r}
+
+sigsub <- res[res$adj.P.Val < .05,]
+
+```
+
+# Comparing thresholded data accross groups
+```{r}
+get_thresh_list <- function(res_df){
+  thresh_list <- res_df %>%
+    dplyr::filter(., adj.P.Val < .05) %>%
+    pull(logFC) %>%
+    abs(.) %>%
+    quantile(., probs=c(0,  .75, .975)) 
+  nms <- names(thresh_list)
+  plt_titles <- sapply(nms,simplify = TRUE, function(x){
+    qnt <- gsub('%', '', x) %>% 
+      as.numeric(.)
+    if(qnt == 0){
+      cur_tit <- 'All_DEGs'
+    } else {
+      cur_prop <- paste0((100 - qnt), '%')
+      cur_tit <- paste0('Top_', cur_prop, '_DEGs')
+    }
+  }) 
+  names(thresh_list) <- plt_titles
+  return(thresh_list)
+}
+
+enrich_res <- 
+  split(sigsub, sigsub$coefficient) %>% 
+  lapply(., function(x){
+    cur_thresh_list <- get_thresh_list(x)
+    lapply(seq_along(cur_thresh_list), function(i){
+      enrich_wrapper(x,cur_thresh_list[i])
+    }) #%>% setNames(., names(cur_thresh_list))
+  }) 
+
+
+```
+# Making figures 
+
+```{r}
+enrich_res <- lapply(enrich_res, function(x){
+    rbind_named_df_list(x, 'threshold')
+}) %>% rbind_named_df_list(., 'coefficient')
+enrich_res$threshold <-  limma::strsplit2(enrich_res$threshold, '_')[,2] 
+enrich_res$threshold[enrich_res$threshold == 'DEGs'] <- 'ALL'
+enrich_res$coefficient <-  limma::strsplit2(enrich_res$coefficient, '_')[,1]
+split_by_reg <- split(enrich_res, enrich_res$regulation) 
+pth_overlaps <- lapply(split_by_reg, function(x){
+  tmp_df <-  data.frame(name=paste0(x$coefficient, '-', x$threshold),
+             x$ID) %>% setNames(., c('name', 'ID')) 
+  split(tmp_df, tmp_df$name) %>% 
+    get_overlap_matix(.)
+})
+temp_plot <- ggcorrplot::ggcorrplot(pth_overlaps$combined, method = 'square', outline.color = 'black', lab = TRUE, lab_col = 'black') 
+temp_plot$labels$fill <- 'Proportion of\noverlapping genes'
+
+temp_plot  + theme(axis.text.x.top = element_text(angle = 90),panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank()) + scale_x_discrete(position = "bottom") + scale_fill_gradient(low='ivory', high = 'royalblue') 
+ggsave(temp_plot,filename = 'overlapping_plot.pdf', height = 6, width = 6)
+
+getwd()
+```
+

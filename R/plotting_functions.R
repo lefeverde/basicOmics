@@ -1,3 +1,36 @@
+#' Returns expanded coordinates of a ggplot
+#'
+#' This returns coordinates which will expand
+#' the plotting area when used with
+#'
+#' @param plt ggplot object
+#' @param prop proportion to exand the x & y limits
+#'
+#' @return list with x & y limits as vector
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' xy_lims <- increase_xy_lims(plt, .15)
+#' plt + coord_cartesian(xlim = xy_lims$x_lims, ylim = xy_lims$y_lims)
+#' }
+#'
+increase_xy_lims <- function(plt, prop=.25){
+
+  lims <- list(c(min(plt$data$x), max(plt$data$x)), c(min(plt$data$y), max(plt$data$y))
+  ) %>%
+    lapply(., function(x){
+      temp_lims <-  x
+      temp_lims[1] <- temp_lims[1] - abs(mean(x)*prop)
+      temp_lims[2] <- temp_lims[2] + abs(mean(x)*prop)
+      temp_lims
+
+    }) %>% setNames(., c('x_lims', 'y_lims'))
+  return(lims)
+}
+
+
+
 #' Creates a volcano plot using data in long format
 #'
 #' This function creates a volc plot using the returned results
@@ -7,14 +40,14 @@
 #' @param plot_labels whether labels should be drawn for some genes
 #' @param label_num number of genes to draw labels
 #'
-#' @return
+#' @return ggplot object
 #' @export
 #'
 #' @example
 volcano_plotter <- function(plot_data, plot_labels=TRUE, label_num=10){
 
-  require(ggplot2) #TODO consider fixing explicit `library` load
-  library("ggrepel") #Avoid overlapping labels
+
+
   split_names <- limma::strsplit2(plot_data$coefficient, '_')
   name_len <- length(split_names[1,])
   plot_data$group <- do.call(paste, data.frame(split_names[,2:name_len]))
@@ -75,7 +108,7 @@ volcano_plotter <- function(plot_data, plot_labels=TRUE, label_num=10){
     pos_genes <- sig_genes[sig_genes$log2FoldChange > 0,]
     pos_genes <- pos_genes[order(-pos_genes$log2FoldChange, pos_genes$padj),][1:label_num,]
     top_genes <- rbind(neg_genes, pos_genes)
-    plt3 <- plt3 + geom_text_repel(data=top_genes,
+    plt3 <- plt3 + ggrepel::geom_text_repel(data=top_genes,
                                    aes(x=log2FoldChange,
                                        y=-log10(padj),
                                        label=external_gene_name),

@@ -1,4 +1,10 @@
-#' Title
+#### TODO Functions ####
+
+
+#' PCA categorical triplot
+#'
+#' Currently this is too unweildy to use out in the wild
+#' but it's not a bad overall, just needs some work.
 #'
 #' @param plot_data
 #' @param ax_labels
@@ -7,19 +13,14 @@
 #' @param plot_legend
 #'
 #' @return
-#' @export
+#' @keywords internal
 #'
 #' @examples
 pca_categorical_triplot <- function(plot_data, ax_labels, plot_ellipse=F, plot_title='', plot_legend=TRUE){
   ### THis uses ggplot facet rapping to
   ### plot PC1 vs PC2, PC2 vs PC3, and
   ### PC1 vs PC3
-  #require(gridExtra)
-  require(ggplot2)
-  #require(RColorBrewer)
-  #require(grid)
-  #require(lemon)
-  require(ggpubr)
+
   # easiest way to do this
   pc1 <- plot_data$pc1
   pc2 <- plot_data$pc2
@@ -80,11 +81,11 @@ pca_categorical_triplot <- function(plot_data, ax_labels, plot_ellipse=F, plot_t
   }
   #return(plot_list)
   if(plot_legend== TRUE){
-    out_plot <- ggarrange(plot_list[[1]],plot_list[[2]],plot_list[[3]], ncol=3, nrow=1,common.legend = TRUE,legend="bottom")
+    out_plot <- ggpubr::ggarrange(plot_list[[1]],plot_list[[2]],plot_list[[3]], ncol=3, nrow=1,common.legend = TRUE,legend="bottom")
 
   }
   if(plot_legend == FALSE){
-    out_plot <- ggarrange(plot_list[[1]],plot_list[[2]],plot_list[[3]], ncol=3, nrow=1,common.legend = TRUE,legend="none")
+    out_plot <- ggpubr::ggarrange(plot_list[[1]],plot_list[[2]],plot_list[[3]], ncol=3, nrow=1,common.legend = TRUE,legend="none")
   }
 
   return(out_plot)

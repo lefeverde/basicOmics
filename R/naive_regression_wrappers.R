@@ -4,7 +4,7 @@
 #' @param p_data matrix with sample data
 #' @param model_formula a string of the form: y ~ x + o
 #'
-#' @return
+#' @return lm list
 #' @export
 #'
 #' @examples
@@ -28,11 +28,11 @@ basic_linear_regression <- function(expr_mat, p_data, model_formula){
 
 #' Performs logistic regression with numerous Y vals
 #'
-#' @param expr_mat
-#' @param p_data
-#' @param model_formula
+#' @param expr_mat matrix of expression values
+#' @param p_data matrix with sample data
+#' @param model_formula a string of the form: y ~ x + o
 #'
-#' @return
+#' @return lm list
 #' @export
 #'
 #' @examples

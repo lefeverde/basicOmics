@@ -1,25 +1,26 @@
 #' Plots PC1 by PC2 using ggplot
 #'
-#' @param transformed_data
-#' @param sample_map
-#' @param leg_row_num
-#' @param gene_num
-#' @param return_data
+#' Creates a PCA plot using ggplot2
 #'
-#' @return
+#' @param transformed_data transformed (e.g., log, vst, rlog) expression data
+#' @param sample_map df of sample annotations
+#' @param leg_row_num how many rows the leg should be
+#' @param gene_num number of genes (ranked by variance) to use
+#' @param return_data whether to return the pca data
+#'
+#' @return ggplot object
 #' @export
 #'
 #' @examples
 pca_plotter <- function(transformed_data, sample_map,leg_row_num=3, gene_num=Inf, return_data=FALSE){
-  library(ggplot2)
-  library(matrixStats)
+
   # Filter out any samples not listed in sample_map
   cur_subset_mat <- data.frame(transformed_data)
   cur_subset_mat <- transformed_data[,colnames(transformed_data) %in% rownames(sample_map)]
   #return(cur_subset_mat)
   # Taken from DESeq2 plotPCA function
   # Calculates the row wise variance
-  rv <- rowVars(as.matrix(cur_subset_mat))
+  rv <- matrixStats::rowVars(as.matrix(cur_subset_mat))
 
 
   # select the gene_num genes by variance
@@ -104,6 +105,7 @@ pca_plotter <- function(transformed_data, sample_map,leg_row_num=3, gene_num=Inf
 }
 
 
+#### TODO Functions ####
 
 #' Title
 #'
@@ -112,12 +114,11 @@ pca_plotter <- function(transformed_data, sample_map,leg_row_num=3, gene_num=Inf
 #' @param gene_num
 #'
 #' @return
-#' @export
+#' @keywords internal
 #'
 #' @examples
 make_pca_plot_data <- function(transformed_data, sample_map, gene_num=Inf){
-  library(ggplot2)
-  library(matrixStats)
+
   #TODO make plotting functions work with continous variables
   if(all(row.names(sample_map) != colnames(transformed_data))){
     stop('row.names of sample_map need to equal colnames of transformed_data')
@@ -129,7 +130,7 @@ make_pca_plot_data <- function(transformed_data, sample_map, gene_num=Inf){
   # Taken from DESeq2 plotPCA function
   # Calculates the row wise variance
   cur_subset_mat <- as.matrix(cur_subset_mat)
-  rv <- rowVars(cur_subset_mat)
+  rv <- matrixStats::rowVars(cur_subset_mat)
   names(rv) <- row.names(cur_subset_mat)
   cur_subset_mat <- cur_subset_mat[rv != 0,]
   rv <- rv[row.names(cur_subset_mat)]
@@ -171,6 +172,16 @@ make_pca_plot_data <- function(transformed_data, sample_map, gene_num=Inf){
 
 
 
+#' Title
+#'
+#' @param tmat
+#' @param sample_map
+#' @param gene_num
+#'
+#' @return
+#' @keywords internal
+#'
+#' @examples
 pca_data_wrapper <- function(tmat, sample_map, gene_num=Inf){
   # This is a wrapper for the make_pca_plot_data()
   # function.
