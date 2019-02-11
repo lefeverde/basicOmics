@@ -1,5 +1,7 @@
 #' get overlap ratio of 2 gene sets
 #'
+#' Returns the overlap divded by the length of the smaller set
+#'
 #' @param x gene vector
 #' @param y gene vector
 #'

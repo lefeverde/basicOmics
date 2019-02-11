@@ -191,7 +191,7 @@ get_limma_results <- function(limma_fit, coefs=NULL){
   }
   res_list <- lapply(coefs, function(x){
     cur_res <- limma::topTable(limma_fit, coef = x, number = Inf) %>%
-      tibble::as_tibble(.) %>%
+      #tibble::as_tibble(.) %>%
       # tibble::rownames_to_column(., 'ensembl_gene_id') %>%
       # data.frame(coefficient=x, .)
       data.frame(coefficient=x, .) %>%

@@ -75,6 +75,78 @@ res <- basicOmics::get_limma_results(fit)
 
 ```
 
+# Running CAMERA
+
+```{r}
+fp <- '/Users/daniellefever/Desktop/R/reference_files/msigdb_v6.2_files_to_download_locally/msigdb_v6.2_GMTs/'
+gmt_files <-  list.files(paste0(fp ), pattern = glob2rx('*symbols.gmt')) %>% 
+    .[grepl('c2|c3|c5', .)] %>% 
+    .[!grepl('all', .)] %>% 
+    c('h.all.v6.2.symbols.gmt', .) 
+
+database_descriptions <- c('hallmark', 'chemical_and_genetic_perturbations', "biocarta", "kegg", "reactome", "canonical_pathways", "micro_rna_targets", "transcription_factor_targets", "go_biological_process", "go_cellular_component", "go_molecular_function") %>% 
+  paste(limma::strsplit2(gmt_files, '\\.')[,1], ., sep='-') %>% 
+  setNames(., gmt_files)
+
+parsed_gmts <- lapply(gmt_files, function(x){
+    temp_fp <- paste0(fp, x)
+    print(x)
+    cur_gmt <- clusterProfiler::read.gmt(temp_fp)
+  }) %>% setNames(., database_descriptions)
+gmts_as_vec_lists <- lapply(parsed_gmts, function(x){
+  split(x, x$ont) %>% 
+    lapply(., function(y){
+      y$gene
+    })
+})
+e_uniquefied <- uniquefy_by_variance(v_sv$E, gene_annots, 'external_gene_name')
+v_sv_uniquefied <- v_sv[row.names(e_uniquefied),]
+row.names(v_sv_uniquefied) <- gene_annots$external_gene_name[match(row.names(v_sv_uniquefied), row.names(gene_annots))]
+
+idx <- ids2indices(parsed_gmts$h.all.v6.2.symbols.gmt,id=rownames(v_sv_uniquefied))
+
+
+```
+
+# Using CAMERA selected MSigDB
+```{r}
+
+get_combo_gmt_list <- function(parsed_gmt_list){
+  out_list <- lapply(parsed_gmt_list, function(x){
+    lapply(x, function(y){
+        str_c(y, collapse = '/')
+    }) %>% 
+        do.call(rbind, .) %>% 
+        data.frame(.) %>% 
+        setNames(., 'genes') %>% 
+        rownames_to_column(., 'pathway')
+    })  %>% 
+    rbind_named_df_list(., 'gene_set_db')
+  return(out_list)
+}
+
+get_camera_res <- function(v_uniquefied, gmt ){
+  d <- v_uniquefied$design
+  coefs_to_use <- colnames(d)[grepl('_vs_', colnames(d))]
+  idx <- ids2indices(gmt,id=rownames(v_uniquefied))
+  cres <- lapply(seq_along(coefs_to_use), function(i){
+    cur_coef <- coefs_to_use[i]
+    camera(v_uniquefied, idx, contrast = cur_coef, allow.neg.cor = TRUE) %>% 
+      rownames_to_column(., 'pathway') %>% 
+      dplyr::filter(., FDR < .05)
+  }) %>% setNames(., coefs_to_use)
+  return(cres)
+}
+
+sel_msig_res <- lapply(seq_along(gmts_as_vec_lists), function(gmt_idx){
+  tmp_gmt <- gmts_as_vec_lists[[gmt_idx]]
+  print(names(gmts_as_vec_lists)[gmt_idx])
+  get_camera_res(v_sv_uniquefied, tmp_gmt) %>% 
+    rbind_named_df_list(., 'coefficient')
+}) %>% setNames(., names(gmts_as_vec_lists))
+```
+
+
 # Checking results 
 ```{r}
 basicOmics::expression_summaries(res)
@@ -119,6 +191,9 @@ enrich_res <-
 
 
 ```
+
+
+
 # Making figures 
 
 ```{r}
