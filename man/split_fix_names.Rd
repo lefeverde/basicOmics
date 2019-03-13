@@ -21,3 +21,4 @@ vector of names
 \description{
 Split names by delim character
 }
+\keyword{internal}

@@ -7,7 +7,14 @@
 basic_logistic_regression(expr_mat, p_data, model_formula)
 }
 \arguments{
-\item{model_formula}{}
+\item{expr_mat}{matrix of expression values}
+
+\item{p_data}{matrix with sample data}
+
+\item{model_formula}{a string of the form: y ~ x + o}
+}
+\value{
+lm list
 }
 \description{
 Performs logistic regression with numerous Y vals

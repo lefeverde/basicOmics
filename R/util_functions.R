@@ -253,10 +253,10 @@ get_deseq2_results <- function(dds_object, gene_annots=NULL, use_shrinkage=FALSE
   }
   names(results_list) <- NULL
   res_df <- do.call(rbind,results_list)
-  rn <- res_df$row
+  rn <- res_df$ensembl_gene_id
   res_df$row <- NULL
   sorted_annots <- gene_annots[match(rn, row.names(gene_annots)),,drop=FALSE]
-  out_df <- data.frame(ENSEMBL_ID=rn, sorted_annots, res_df)
+  out_df <- data.frame(ensembl_gene_id=rn, sorted_annots, res_df)
   row.names(out_df) <- NULL
   return(out_df)
 }

@@ -8,8 +8,19 @@ pca_plotter(transformed_data, sample_map, leg_row_num = 3,
   gene_num = Inf, return_data = FALSE)
 }
 \arguments{
-\item{return_data}{}
+\item{transformed_data}{transformed (e.g., log, vst, rlog) expression data}
+
+\item{sample_map}{df of sample annotations}
+
+\item{leg_row_num}{how many rows the leg should be}
+
+\item{gene_num}{number of genes (ranked by variance) to use}
+
+\item{return_data}{whether to return the pca data}
+}
+\value{
+ggplot object
 }
 \description{
-Plots PC1 by PC2 using ggplot
+Creates a PCA plot using ggplot2
 }

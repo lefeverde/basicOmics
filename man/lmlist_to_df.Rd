@@ -17,3 +17,4 @@ data.frame with coefficient
 \description{
 Turn summary object from lm into a data.frame
 }
+\keyword{internal}

@@ -19,3 +19,19 @@ rbinds together data.frames in which the list name
 is turned into a column and bound to the data.frame
 becoming the first column of the data.frame
 }
+\examples{
+library(dplyr)
+library(basicOmics)
+l <- list(data.frame(A=seq(1,5)), data.frame(A=seq(6, 7))) \%>\%
+ setNames(., c('Cond1', 'Cond2'))
+ rbind_named_df_list(l)
+
+# Doesn't work because list contains matrix
+\dontrun{
+l <- list(data.frame(A=seq(1,5)),
+ data.frame(A=seq(6, 7)),
+ matrix(data=NA, ncol=1, nrow=5)) \%>\%
+ setNames(., c('Cond1', 'Cond2', 'Cond3'))
+ rbind_named_df_list(l)
+}
+}

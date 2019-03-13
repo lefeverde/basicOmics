@@ -8,6 +8,8 @@ get_geneSets(path_df, delim = "/")
 }
 \arguments{
 \item{path_df}{data.frame with gene sets}
+
+\item{delim}{delimeter seperating genes (default: '/')}
 }
 \value{
 list with names as pathway ids

@@ -1,6 +1,7 @@
 #' get overlap ratio of 2 gene sets
 #'
-#' Returns the overlap divded by the length of the smaller set
+#' The ratio is calculated using the number of
+#' genes which overlap
 #'
 #' @param x gene vector
 #' @param y gene vector
@@ -10,9 +11,14 @@
 #'
 #'
 overlap_ratio <- function(x, y) {
-  x <- unlist(x)
-  y <- unlist(y)
-  length(intersect(x, y))/length(unique(c(x,y)))
+  x <- unlist(x) %>%
+    unique(.)
+  y <- unlist(y) %>%
+    unique(.)
+  overlap <- length(intersect(x, y))
+  divisor <- c(length(x), length(y)) %>%
+    min(.)
+  return(overlap/divisor)
 }
 
 

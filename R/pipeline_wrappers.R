@@ -15,6 +15,8 @@
 #'
 #' @examples
 dge_wrapper <- function(txi, p, gene_annots){
+  #TODO Error messages don't output if condition
+  # need to fix that
   if(all(colnames(txi$counts) != row.names(p))){
     stop(call. = TRUE)
   }

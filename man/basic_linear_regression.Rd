@@ -13,6 +13,9 @@ basic_linear_regression(expr_mat, p_data, model_formula)
 
 \item{model_formula}{a string of the form: y ~ x + o}
 }
+\value{
+lm list
+}
 \description{
 Function performs lm over accross a number of genes
 }

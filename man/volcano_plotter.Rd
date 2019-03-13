@@ -13,6 +13,9 @@ volcano_plotter(plot_data, plot_labels = TRUE, label_num = 10)
 
 \item{label_num}{number of genes to draw labels}
 }
+\value{
+ggplot object
+}
 \description{
 This function creates a volc plot using the returned results
 in long format. Meant to be used with my results wappers

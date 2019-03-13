@@ -11,6 +11,9 @@ select_genes_by_variance(expr_mat, n_genes = 5000)
 
 \item{n_genes}{number of genes to extract}
 }
+\value{
+gene matrix
+}
 \description{
 Selects the top n genes by variance
 }

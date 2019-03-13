@@ -2,13 +2,7 @@
 % Please edit documentation in R/util_functions.R
 \name{gene_quantile_filter}
 \alias{gene_quantile_filter}
-\title{Gene expression filter by quantile
-This function first removes rows in which
-the max value equals the min value and
-then filters the resulting genes by row
-medians. Rows with a median greater than
-the resulting value of the quantile are
-retained.}
+\title{Gene expression filter by quantile}
 \usage{
 gene_quantile_filter(expr_mat, quant_val = 0.05)
 }
@@ -18,10 +12,9 @@ gene_quantile_filter(expr_mat, quant_val = 0.05)
 \item{quant_val}{quantile threshold}
 }
 \value{
-filtered by quantile  expresion matrix
+filtered by quantile expresion matrix
 }
 \description{
-Gene expression filter by quantile
 This function first removes rows in which
 the max value equals the min value and
 then filters the resulting genes by row

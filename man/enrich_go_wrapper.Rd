@@ -7,8 +7,12 @@
 enrich_go_wrapper(ent_genes)
 }
 \arguments{
-\item{gene_vector}{}
+\item{ent_genes}{vector of entrez genes}
+}
+\value{
+pathway list by database
 }
 \description{
 Performs enrichment analysis accross all GO domains
 }
+\keyword{internal}

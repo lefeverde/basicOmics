@@ -74,6 +74,94 @@ res <- basicOmics::get_limma_results(fit)
 
 
 ```
+# Comparing the Contrast vs leave 1 out
+```{r}
+mod <- basicOmics::better_model_matrix(~group, data=ex_p)
+v <- voom(temp_dge, mod)
+fit <- lmFit(v) %>% 
+  eBayes(.) 
+res <- basicOmics::get_limma_results(fit)
+res$coefficient <-  gsub('_vs_', '-', res$coefficient) 
+
+mod_cont <- basicOmics::better_model_matrix(~0 + group, data=ex_p)
+v_cont <- voom(temp_dge, mod_cont)
+cont_mat <-  makeContrasts(contrasts = paste0(levels(ex_p$group)[2:length(levels(ex_p$group))], '-NORMAL'), levels=mod_cont)
+fit_cont <- lmFit(v_cont) %>% 
+  contrasts.fit(., cont_mat) %>% 
+  eBayes(.)
+cont_res <- basicOmics::get_limma_results(fit_cont, coefs=colnames(cont_mat))
+
+cont_res_sigsub <- cont_res[cont_res$adj.P.Val < .05,]
+cont_list <- list(
+    dplyr::filter(cont_res_sigsub, logFC >0) %>% 
+        split(., .$coefficient) %>% 
+        lapply(., function(x){
+            x$ensembl_gene_id
+        }),
+    dplyr::filter(cont_res_sigsub, logFC <0) %>% 
+        split(., .$coefficient) %>% 
+        lapply(., function(x){
+            x$ensembl_gene_id
+        })
+) %>% setNames(., c( 'upreg', 'downreg'))
+
+res_sigsub <- res[res$adj.P.Val < .05,]
+res_list <- list(
+    dplyr::filter(res_sigsub, logFC >0) %>% 
+        split(., .$coefficient) %>% 
+        lapply(., function(x){
+            x$ensembl_gene_id
+        }),
+    dplyr::filter(res_sigsub, logFC <0) %>% 
+        split(., .$coefficient) %>% 
+        lapply(., function(x){
+            x$ensembl_gene_id
+        })
+) %>% setNames(., c( 'upreg', 'downreg'))
+
+
+
+lapply(names(res_list), function(x){
+    get_overlap_matix(res_list[[x]], cont_list[[x]])
+})
+
+```
+# Using SVA
+```{r}
+svobj <- sva(v$E, mod, mod0)
+modSV <- cbind(mod, svobj$sv)
+fit <- lmFit(v, modSV) %>% 
+  eBayes(.)
+res <- basicOmics::get_limma_results(fit)
+sigsub_res <- res[res$adj.P.Val < .05,]
+
+
+svobj_cont <- sva(v_cont$E, mod_cont, mod0)
+modSV_cont <- data.frame(cbind(mod_cont, svobj_cont$sv))
+cont_matSV <- makeContrasts(contrasts = paste0(levels(ex_p$group)[2:length(levels(ex_p$group))], '-NORMAL'), levels=modSV_cont)
+fit_cont <- lmFit(v_cont, modSV_cont) %>% 
+  contrasts.fit(., cont_matSV) %>% 
+  eBayes(.)
+res_cont <- basicOmics::get_limma_results(fit_cont, coefs = colnames(cont_matSV))
+res_cont$coefficient <- gsub('-', '_vs_', res_cont$coefficient)
+sigsub_res_cont <- res_cont[res_cont$adj.P.Val < .05,]
+
+
+lapply(unique(sigsub_res_cont$coefficient), function(x){
+  tmp <- sigsub_res[sigsub_res$coefficient == x,]
+  tmp_cont <- sigsub_res_cont[sigsub_res_cont$coefficient == x,]
+  length(intersect(tmp$ensembl_gene_id, tmp_cont$ensembl_gene_id))/min(length(tmp$ensembl_gene_id), length(tmp_cont$ensembl_gene_id))
+})
+fib_res <- sigsub_res[sigsub_res$coefficient == 'Fibrosis_vs_NORMAL',]
+fib_res_cont <- sigsub_res_cont[sigsub_res_cont$coefficient == 'Fibrosis_vs_NORMAL',]
+
+
+genes_to_look_at <- c(setdiff( fib_res_cont$ensembl_gene_id, fib_res$ensembl_gene_id),setdiff(fib_res$ensembl_gene_id, fib_res_cont$ensembl_gene_id)
+)
+tf1 <-  res_cont[res_cont$ensembl_gene_id %in% genes_to_look_at & res_cont$coefficient =='Fibrosis_vs_NORMAL',]
+tf2 <-  res[res$ensembl_gene_id %in% genes_to_look_at & res$coefficient =='Fibrosis_vs_NORMAL',]
+```
+It looks the contrast and normal (leave one out approach w/ intercept) were virtually indentical. There were a total of 5 genes different between the 2 methods. It looks like this is stochaisticity around the p-values. 
 
 # Running CAMERA
 

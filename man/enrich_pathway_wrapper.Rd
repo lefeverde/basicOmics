@@ -7,8 +7,12 @@
 enrich_pathway_wrapper(ent_genes)
 }
 \arguments{
-\item{gene_vector}{}
+\item{ent_genes}{vector of entrez genes}
+}
+\value{
+pathway list by database
 }
 \description{
 Performs enrichment analysis using KEGG, REACTOME, DO, and DisGenNet
 }
+\keyword{internal}

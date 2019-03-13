@@ -2,7 +2,7 @@
 % Please edit documentation in R/enrichment_wrappers.R
 \name{ensembl_to_entrez_genes}
 \alias{ensembl_to_entrez_genes}
-\title{Title}
+\title{Converts ensembl to entrez}
 \usage{
 ensembl_to_entrez_genes(gene_vector)
 }
@@ -13,5 +13,6 @@ ensembl_to_entrez_genes(gene_vector)
 data.frame of with ensembl gene and entrez gene ids
 }
 \description{
-Title
+Converts ensembl to entrez
 }
+\keyword{internal}

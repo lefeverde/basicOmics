@@ -12,3 +12,4 @@ split_by_reg(lfc_list)
 \description{
 Split a named vector of DEGs by fold change
 }
+\keyword{internal}

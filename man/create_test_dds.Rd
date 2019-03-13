@@ -13,3 +13,4 @@ create_test_dds(n_genes = 500, m_samples = 60, seed = 42,
 \description{
 Title
 }
+\keyword{internal}

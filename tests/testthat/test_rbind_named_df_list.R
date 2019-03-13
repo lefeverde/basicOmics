@@ -30,7 +30,13 @@ test_that('rbind_named_df_list can (gracefully) handle empty data.frames or NULL
     setNames(., c('Cond1', 'Cond2', 'Cond3'))
   expect_equal(expect_warning(rbind_named_df_list(l_empty), 'Cond1'), el)
   expect_equal(expect_warning(rbind_named_df_list(l_null), 'Cond1'), el)
+})
 
+test_that('rbind_named_df_list complains loudly about data.frames with mismatched columns',{
+  l <- list(data.frame(A=seq(1,5), B=seq(8,12)),
+            data.frame(A=seq(6, 7))) %>%
+    setNames(., c('Cond2', 'Cond3'))
+  expect_error(rbind_named_df_list(l))
 
 
 })

@@ -12,3 +12,4 @@ make_pca_plot_data(transformed_data, sample_map, gene_num = Inf)
 \description{
 Title
 }
+\keyword{internal}

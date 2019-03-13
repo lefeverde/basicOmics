@@ -7,7 +7,12 @@
 get_limma_results(limma_fit, coefs = NULL)
 }
 \arguments{
-\item{skip_intercept}{}
+\item{limma_fit}{fit object produced by limma}
+
+\item{coefs}{coefficients to return}
+}
+\value{
+data.frame of results in long(ish) format
 }
 \description{
 Takes a limma fit object and returns a long data.frame

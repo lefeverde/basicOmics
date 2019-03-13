@@ -6,18 +6,38 @@ Authors@R: c(person("Daniel", "Lefever", role = c("aut", "cre", "ths"),
     email = "lefeverde@gmail.com"))
 Description: These are a collection of functions which were designed to
     for analyzing microarray data.
-License: What license is it under?
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
 Imports: 
-    dplyr,
     magrittr,
     SummarizedExperiment,
     tibble,
     reshape2,
     DESeq2,
     doParallel,
-    foreach
+    foreach,
+    limma,
+    ggpubr,
+    Biobase,
+    DOSE,
+    ReactomePA,
+    biomaRt,
+    clusterProfiler,
+    ggrepel,
+    ggsci,
+    matrixStats,
+    plyr,
+    rstudioapi
 Suggests: 
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
+Depends: 
+    stats,
+    ggplot2,
+    base,
+    edgeR,
+    dplyr
+VignetteBuilder: knitr

@@ -2,7 +2,7 @@
 % Please edit documentation in R/pca_categorical_triplot.R
 \name{pca_categorical_triplot}
 \alias{pca_categorical_triplot}
-\title{Title}
+\title{PCA categorical triplot}
 \usage{
 pca_categorical_triplot(plot_data, ax_labels, plot_ellipse = F,
   plot_title = "", plot_legend = TRUE)
@@ -11,5 +11,7 @@ pca_categorical_triplot(plot_data, ax_labels, plot_ellipse = F,
 \item{plot_legend}{}
 }
 \description{
-Title
+Currently this is too unweildy to use out in the wild
+but it's not a bad overall, just needs some work.
 }
+\keyword{internal}

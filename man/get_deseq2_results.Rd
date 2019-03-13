@@ -15,7 +15,7 @@ get_deseq2_results(dds_object, gene_annots = NULL,
 \item{use_shrinkage}{logical whether to perform lfcshrinkage}
 }
 \value{
-results in long format
+data.frame of results in long(ish) format
 }
 \description{
 Returns DESeq2 results in long format
