@@ -131,3 +131,30 @@ volcano_plotter <- function(plot_data, plot_labels=TRUE, label_num=10){
   return(plt3)
 }
 
+
+#### TODO Functions ####
+
+#' Venn maker
+#'
+#' @param set_list
+#' @param tit
+#'
+#' @return
+#' @keywords internal
+#'
+#' @examples
+venn_maker <- function(set_list, tit=''){
+  if(is.null(names(set_list))){
+    stop(call. = TRUE, 'set_list needs to be named')
+  }
+  euler(set_list) %>%
+    plot(.,
+         fills=list(fill=c('red', 'blue'),
+                    alpha=.5),
+         col=c('red', 'blue'),
+         quantities = list(cex = 1.125),
+         fontsize = 14,
+         text_args = list(font = 20),
+         legend=list(cex=1.5, alpha=1))
+}
+

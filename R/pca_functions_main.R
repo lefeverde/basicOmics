@@ -77,13 +77,13 @@ pca_plotter <- function(transformed_data, sample_map,leg_row_num=3, gene_num=Inf
     geom_vline(xintercept=0) +
     # gets a pretty colour set
     # stat_ellipse(alpha=.15, geom = "polygon") +
-    scale_colour_brewer(palette="Set1") +
+    # scale_colour_brewer(palette="Set1") +
     # scale_fill_brewer(palette="Set1") +
     labs(x=axlab.1, y=axlab.2) + theme_bw()
 
   # This all just setting the themes the way I like it
 
-  plt2 <- plt1 + theme(plot.margin = unit(c(1,1,1,1), "cm"),panel.background = element_blank(), axis.title.y=element_text(size=rel(1.75), face="bold", margin=margin(0,7.5,0,0)), axis.title.x=element_text(size=rel(1.75), face="bold",margin=margin(7.5,0,0,0)),axis.text.y=element_text(size=rel(1.5),colour="black"),axis.text.x=element_text(size=rel(1.5), colour="black"), legend.title=element_blank(),legend.key = element_blank(),legend.text=element_text(size=rel(1.25)),legend.position = 'bottom',panel.border=element_rect(fill=NA,colour="black", size=rel(1.9)))
+  plt2 <- plt1 + theme(plot.margin = unit(c(1,1,1,1), "cm"),panel.background = element_blank(), axis.title.y=element_text(size=rel(1.75), face="bold", margin=margin(0,7.5,0,0)), axis.title.x=element_text(size=rel(1.75), face="bold",margin=margin(7.5,0,0,0)),axis.text.y=element_text(size=rel(1.5),colour="black"),axis.text.x=element_text(size=rel(1.5), colour="black"), legend.title=element_blank(),legend.key = element_blank(),legend.text=element_text(size=rel(1.25)),legend.position = 'bottom',panel.border=element_rect(fill=NA,colour="black", size=rel(1.9))) + guides(colour= guide_legend(override.aes = list(size=rel(3.75))))
   #title=element_text(size=22,
 
 
