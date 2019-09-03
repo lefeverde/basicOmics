@@ -20,8 +20,8 @@ get_geneSets <- function(path_df, delim="/"){
 
 #' Creates a much nicer formatted design matrix than the default model.matrix
 #'
-#' I made this function because the way the
-#' model.matrix creates issues with differential
+#' I made this function because the way the model.matrix function
+#' creates a desing matrix, can cause issues with differential
 #' gene expression tools, such as edgeR, DESeq2,
 #' and limma. If the intercept column is included,
 #' it first removes the parens and parens from the
@@ -95,23 +95,28 @@ better_model_matrix <- function(..., data, show_warnings=TRUE){
 
 #' get results from limma fit object
 #'
-#' Takes a limma fit object and returns a long data.frame
-#' of the results. If no coefficients are passed, it tries
-#' to guess which are the relevant ones checking which
-#' are made up of 1's and 0's.
+#' Takes a limma fit object created using either \link[limma]{eBayes} or
+#' \link[limma]{treat} and returns a long data.frame of the results.
+#' If the `fit` object contains `lods`, then results are obtained using
+#' \link[limma]{topTable}. Else, if the fit object contains a `treat.lfc`
+#' topTreat is used. If no coefficients are passed, it tries to guess
+#' which are the relevant ones checking which are made up of 1's and 0's.
 #'
 #' @param limma_fit fit object produced by limma
 #' @param coefs coefficients to return
+#' @param print_summary logical, whether print summary of the results
 #'
 #' @return data.frame of results in long(ish) format
 #' @export
 #'
+#' @importFrom limma topTable
+#'
+#'
 #' @examples
-get_limma_results <- function(limma_fit, coefs=NULL){
+get_limma_results <- function(limma_fit, coefs=NULL, print_summary=TRUE){
   #TODO add tests
   #TODO think about handling levels with whitespace
   #TODO maybe automagically figure type of gene annots
-
   d <- limma_fit$design
   if(is.null(coefs)){
     d <- limma_fit$design
@@ -121,17 +126,29 @@ get_limma_results <- function(limma_fit, coefs=NULL){
     coefs <- colnames(d)[one_hot_cols]
     coefs <- coefs[!grepl('intercept', coefs, ignore.case = T)]
   }
-  res_list <- lapply(coefs, function(x){
-    cur_res <- limma::topTable(limma_fit, coef = x, number = Inf) %>%
-      #tibble::as_tibble(.) %>%
-      # tibble::rownames_to_column(., 'ensembl_gene_id') %>%
-      # data.frame(coefficient=x, .)
-      tibble::rownames_to_column(., 'gene_id') %>%
-      data.frame(coefficient=x, .)
 
+  res_list <- lapply(coefs, function(x){
+    if('lods' %in% names(limma_fit)){
+      cur_res <-
+        topTable(limma_fit, coef = x, number = Inf, confint=TRUE)
+    }
+    if('treat.lfc' %in% names(limma_fit)){
+      cur_res <-
+        topTreat(limma_fit, coef = x, number = Inf, confint=TRUE)
+    }
+      cur_res <- cur_res %>%
+        tibble::rownames_to_column(., 'gene_id') %>%
+        cbind(coefficient=x, .)
   }) %>% do.call(rbind, .)
+
+  if(print_summary){
+    expression_summaries(res_list) %>%
+      print
+  }
   return(res_list)
 }
+
+
 
 
 
