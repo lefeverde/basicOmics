@@ -1,7 +1,7 @@
 Package: basicOmics
 Type: Package
 Title: Package for basic statistical tests on Omics data
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(person("Daniel", "Lefever", role = c("aut", "cre", "ths"),
     email = "lefeverde@gmail.com"))
 Description: These are a collection of functions which were designed to
@@ -9,27 +9,21 @@ Description: These are a collection of functions which were designed to
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 Imports: 
     magrittr,
     SummarizedExperiment,
     tibble,
     reshape2,
     DESeq2,
-    doParallel,
-    foreach,
     limma,
-    ggpubr,
     Biobase,
     DOSE,
     ReactomePA,
     biomaRt,
     clusterProfiler,
-    ggrepel,
-    ggsci,
     matrixStats,
     plyr,
-    rstudioapi
 Suggests: 
     testthat,
     knitr,

@@ -4,8 +4,13 @@
 \alias{pca_plotter}
 \title{Plots PC1 by PC2 using ggplot}
 \usage{
-pca_plotter(transformed_data, sample_map, leg_row_num = 3,
-  gene_num = Inf, return_data = FALSE)
+pca_plotter(
+  transformed_data,
+  sample_map,
+  leg_row_num = 3,
+  gene_num = Inf,
+  return_data = FALSE
+)
 }
 \arguments{
 \item{transformed_data}{transformed (e.g., log, vst, rlog) expression data}

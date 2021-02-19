@@ -9,6 +9,9 @@ split_by_reg(lfc_list)
 \arguments{
 \item{lfc_list}{DEG vector of FCs}
 }
+\value{
+
+}
 \description{
 Split a named vector of DEGs by fold change
 }

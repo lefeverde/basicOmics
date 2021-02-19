@@ -9,6 +9,9 @@ pca_data_wrapper(tmat, sample_map, gene_num = Inf)
 \arguments{
 \item{gene_num}{}
 }
+\value{
+
+}
 \description{
 Title
 }

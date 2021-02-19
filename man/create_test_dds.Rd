@@ -4,11 +4,13 @@
 \alias{create_test_dds}
 \title{Title}
 \usage{
-create_test_dds(n_genes = 500, m_samples = 60, seed = 42,
-  groups = NULL)
+create_test_dds(n_genes = 500, m_samples = 60, seed = 42, groups = NULL)
 }
 \arguments{
 \item{groups}{}
+}
+\value{
+
 }
 \description{
 Title

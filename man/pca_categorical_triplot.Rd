@@ -4,11 +4,19 @@
 \alias{pca_categorical_triplot}
 \title{PCA categorical triplot}
 \usage{
-pca_categorical_triplot(plot_data, ax_labels, plot_ellipse = F,
-  plot_title = "", plot_legend = TRUE)
+pca_categorical_triplot(
+  plot_data,
+  ax_labels,
+  plot_ellipse = F,
+  plot_title = "",
+  plot_legend = TRUE
+)
 }
 \arguments{
 \item{plot_legend}{}
+}
+\value{
+
 }
 \description{
 Currently this is too unweildy to use out in the wild

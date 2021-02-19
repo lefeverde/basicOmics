@@ -9,6 +9,9 @@ venn_maker(set_list, tit = "")
 \arguments{
 \item{tit}{}
 }
+\value{
+
+}
 \description{
 Venn maker
 }

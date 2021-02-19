@@ -17,8 +17,8 @@ better_model_matrix(..., data, show_warnings = TRUE)
 model.matrix
 }
 \description{
-I made this function because the way the
-model.matrix creates issues with differential
+I made this function because the way the model.matrix function
+creates a desing matrix, can cause issues with differential
 gene expression tools, such as edgeR, DESeq2,
 and limma. If the intercept column is included,
 it first removes the parens and parens from the

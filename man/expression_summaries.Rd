@@ -4,8 +4,12 @@
 \alias{expression_summaries}
 \title{Returns summaries of gene expression}
 \usage{
-expression_summaries(long_res_table, log2_thresh = 0, logFC_col = NULL,
-  padj_col = NULL)
+expression_summaries(
+  long_res_table,
+  log2_thresh = 0,
+  logFC_col = NULL,
+  padj_col = NULL
+)
 }
 \arguments{
 \item{long_res_table}{res df in long format}

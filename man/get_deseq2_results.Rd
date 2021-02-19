@@ -4,8 +4,7 @@
 \alias{get_deseq2_results}
 \title{Returns DESeq2 results in long format}
 \usage{
-get_deseq2_results(dds_object, gene_annots = NULL,
-  use_shrinkage = FALSE)
+get_deseq2_results(dds_object, gene_annots = NULL, use_shrinkage = FALSE)
 }
 \arguments{
 \item{dds_object}{DDS object after running DESeq}

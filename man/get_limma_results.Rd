@@ -4,19 +4,23 @@
 \alias{get_limma_results}
 \title{get results from limma fit object}
 \usage{
-get_limma_results(limma_fit, coefs = NULL)
+get_limma_results(limma_fit, coefs = NULL, print_summary = TRUE)
 }
 \arguments{
 \item{limma_fit}{fit object produced by limma}
 
 \item{coefs}{coefficients to return}
+
+\item{print_summary}{logical, whether print summary of the results}
 }
 \value{
 data.frame of results in long(ish) format
 }
 \description{
-Takes a limma fit object and returns a long data.frame
-of the results. If no coefficients are passed, it tries
-to guess which are the relevant ones checking which
-are made up of 1's and 0's.
+Takes a limma fit object created using either \link[limma]{eBayes} or
+\link[limma]{treat} and returns a long data.frame of the results.
+If the `fit` object contains `lods`, then results are obtained using
+\link[limma]{topTable}. Else, if the fit object contains a `treat.lfc`
+topTreat is used. If no coefficients are passed, it tries to guess
+which are the relevant ones checking which are made up of 1's and 0's.
 }

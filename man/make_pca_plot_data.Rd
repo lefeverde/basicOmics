@@ -9,6 +9,9 @@ make_pca_plot_data(transformed_data, sample_map, gene_num = Inf)
 \arguments{
 \item{gene_num}{}
 }
+\value{
+
+}
 \description{
 Title
 }

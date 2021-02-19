@@ -20,7 +20,7 @@
 #' @examples
 uniquefy_by_variance <- function(mat, map, dup_col=NULL){
 
-  if(! class(mat) %in% c('data.frame','matrix')){
+  if(!any(class(mat) %in% c('data.frame','matrix'))){
     stop('expr_mat needs to be either a data.frame or matrix of gene expression value.')
   }
 

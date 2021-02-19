@@ -2,6 +2,21 @@ context("analysis.R tests ")
 library(basicOmics)
 
 
+get_example_data <- function(){
+  rds_to_load <-
+    c('example_dge_object.rds',
+      'example_voom_object.rds',
+      'example_fit_object.rds',
+      'expected_limma_res.rds') %>%
+    lapply(., function(x){
+      system.file('extdata',
+                  x,
+                  package = 'basicOmics',
+                  mustWork = TRUE)
+    }) %>% setNames(., c('dge', 'v', 'fit', 'e_res'))
+}
+
+
 test_that('overlap_ratio calculates overlap correctly',{
   x <- LETTERS[1:5]
   y <- LETTERS[2:10]
@@ -22,3 +37,6 @@ test_that('get_overlap_matix produces correct overlap matrix',{
   omat <- get_overlap_matix(l1)
   expect_equivalent(e_mat, omat, tolerance=1e-6)
 })
+
+
+
